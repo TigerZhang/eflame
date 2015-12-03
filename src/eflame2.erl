@@ -34,8 +34,8 @@ write_trace_exp(Mode, BinaryFile, PidSpec, M, F, A) ->
 
 write_trace2(Style, Mode, BinaryFile, PidSpec, M, F, A) ->
     {ok, Tracer} = start_tracer(BinaryFile),
-    io:format(user, "Tracer ~p\n", [Tracer]),
-    io:format(user, "self() ~p\n", [self()]),
+    %% io:format(user, "Tracer ~p\n", [Tracer]),
+    %% io:format(user, "self() ~p\n", [self()]),
 
     start_trace(Style, Tracer, PidSpec, Mode),
     Return = (catch erlang:apply(M, F, A)),
@@ -48,7 +48,7 @@ start_trace(normal, _Tracer, PidSpec, Mode) ->
     MatchSpec = [{'_',[],[{message,{process_dump}}]}],
     start_trace2(_Tracer, PidSpec, Mode, MatchSpec);
 start_trace(backtrace, _Tracer, PidSpec, Mode) ->
-    io:format("\n\nYEAH, using the new hackery!\n\n"),
+    %% io:format("\n\nYEAH, using the new hackery!\n\n"),
     MatchSpec = [{'_',[],[{message,{process_backtrace}}]}],
     start_trace2(_Tracer, PidSpec, Mode, MatchSpec).
 
@@ -64,7 +64,7 @@ start_trace2(_Tracer, PidSpec, Mode, MatchSpec) ->
                            {v_global_calls_only, dbg:tp('_', '_', MatchSpec)}
                    end
            end,
-    io:format("Starting tracer results: ~p\n", [Verb]),
+    %% io:format("Starting tracer results: ~p\n", [Verb]),
     if is_list(PidSpec) ->
             [dbg:p(PS, trace_flags(Mode)) || PS <- PidSpec];
        true ->
@@ -95,12 +95,14 @@ exp0({trace_ts, Pid, call, {M,F,A}, BIN, _TS}, _Acc) ->
                         end, stak(BIN)), % Thank you, Mats!
     MFA_str = lists:flatten(io_lib:format("~w:~w/~w", [M, F, A])),
     Total0 = Stak ++ [MFA_str],
-    Total = stak_trim(Total0),
-    io:format("~w;~s\n", [Pid, intercalate(";", Total)]);
+    Total = stak_trim(Total0);
+    %% io:format("~w;~s\n", [Pid, intercalate(";", Total)]);
 exp0(end_of_trace, _Acc) ->
-    io:format("End of trace found, hooray!\n");
+    %% io:format("End of trace found, hooray!\n");
+    ok;
 exp0(Else, _Acc) ->
-    io:format("?? ~P\n", [Else, 10]).
+    %% io:format("?? ~P\n", [Else, 10]).
+    ok.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -111,7 +113,7 @@ exp1(end_of_trace = _Else, #state{output_path=OutputPath} = OuterS) ->
     (catch erlang:delete(hello_world)),
     PidStates = get(),
     {ok, FH} = file:open(OutputPath, [write, raw, binary, delayed_write]),
-    io:format("\n\nWriting to ~s for ~w processes... ", [OutputPath, length(PidStates)]),
+    %% io:format("\n\nWriting to ~s for ~w processes... ", [OutputPath, length(PidStates)]),
     [
         [begin
              Pid_str0 = lists:flatten(io_lib:format("~w", [Pid])),
@@ -122,14 +124,14 @@ exp1(end_of_trace = _Else, #state{output_path=OutputPath} = OuterS) ->
          end || {Stack, Time} <- Acc]
      || {Pid, #state{acc=Acc} = _S} <- PidStates],
     file:close(FH),
-    io:format("finished!\n"),
+    %% io:format("finished!\n"),
     OuterS;
 exp1(T, #state{output_path=OutputPath} = S) ->
     trace_ts = element(1, T),
     Pid = element(2, T),
     PidState = case erlang:get(Pid) of
                    undefined ->
-                       io:format("~p ", [Pid]),
+                       % io:format("~p ", [Pid]),
                        #state{output_path=OutputPath};
                    SomeState ->
                        SomeState
@@ -174,7 +176,7 @@ exp1_inner({trace_ts, Pid, call, MFA, BIN, TS},
     %% TODO: more state tracking here.
     S#state{pid=Pid, last_ts=TS, count=Count+1, acc=Acc2}
   catch XX:YY ->
-            io:format(user, "~p: ~p:~p @ ~p\n", [?LINE, XX, YY, erlang:get_stacktrace()]),
+            %% io:format(user, "~p: ~p:~p @ ~p\n", [?LINE, XX, YY, erlang:get_stacktrace()]),
             S
   end;
 exp1_inner({trace_ts, _Pid, return_to, MFA, TS}, #state{last_ts=LastTS, acc=Acc} = S) ->
@@ -195,7 +197,7 @@ exp1_inner({trace_ts, _Pid, return_to, MFA, TS}, #state{last_ts=LastTS, acc=Acc}
 %    io:format(user, "return-to: ~p\n", [lists:sublist(Acc2, 4)]),
     S#state{last_ts=TS, acc=Acc2}
   catch XX:YY ->
-            io:format(user, "~p: ~p:~p @ ~p\n", [?LINE, XX, YY, erlang:get_stacktrace()]),
+            %% io:format(user, "~p: ~p:~p @ ~p\n", [?LINE, XX, YY, erlang:get_stacktrace()]),
             S
   end;
     
@@ -240,7 +242,7 @@ exp1_inner({trace_ts, _Pid, out, MFA, TS}, #state{last_ts=LastTS, acc=Acc} = S) 
             {LastStack, LastTime + USec}|Tail],
     S#state{last_ts=TS, acc=Acc2}
   catch XX:YY ->
-            io:format(user, "~p: ~p:~p @ ~p\n", [?LINE, XX, YY, erlang:get_stacktrace()]),
+            %% io:format(user, "~p: ~p:~p @ ~p\n", [?LINE, XX, YY, erlang:get_stacktrace()]),
             S
   end;
 exp1_inner({trace_ts, _Pid, in, MFA, TS}, #state{last_ts=LastTS, acc=Acc} = S) ->
@@ -255,29 +257,29 @@ exp1_inner({trace_ts, _Pid, in, MFA, TS}, #state{last_ts=LastTS, acc=Acc} = S) -
     Acc2 = [{[MFA_bin|LastExecStack], 0}, {SleepStack, SleepTime + USec}|Tail],
     S#state{last_ts=TS, acc=Acc2}
   catch XX:YY ->
-            io:format(user, "~p: ~p:~p @ ~p\n", [?LINE, XX, YY, erlang:get_stacktrace()]),
+            %% io:format(user, "~p: ~p:~p @ ~p\n", [?LINE, XX, YY, erlang:get_stacktrace()]),
             S
   end;
 
 exp1_inner(end_of_trace = _Else, #state{pid=Pid, output_path=OutputPath, acc=Acc} = S) ->
     {ok, FH} = file:open(OutputPath, [write, raw, binary, delayed_write]),
-    io:format("Writing to ~s ... ", [OutputPath]),
+    %% io:format("Writing to ~s ... ", [OutputPath]),
     [begin
          Pid_str = io_lib:format("~w", [Pid]),
          Time_str = integer_to_list(Time),
          file:write(FH, [Pid_str, $;, intersperse($;, lists:reverse(Stack)), 32, Time_str, 10])
      end || {Stack, Time} <- Acc],
     file:close(FH),
-    io:format("finished\n"),
+    %% io:format("finished\n"),
     S;
 exp1_inner(_Else, S) ->
-    io:format("?? ~P\n", [_Else, 10]),
+    %% io:format("?? ~P\n", [_Else, 10]),
     S.
 
 exp1_hello_world() ->
     case erlang:get(hello_world) of
         undefined ->
-            io:format("Hello, world, I'm ~p and I'm running....\n", [self()]),
+            %% io:format("Hello, world, I'm ~p and I'm running....\n", [self()]),
             erlang:put(hello_world, true);
         _ ->
             ok
@@ -340,8 +342,8 @@ trace_flags(Mode) when Mode == global_calls; Mode == global_and_local_calls ->
 trace_flags(Mode) when Mode == global_calls_plus_new_procs; Mode == global_and_local_calls_plus_new_procs ->
     [call, arity, return_to, timestamp, running, set_on_spawn];
 trace_flags(Mode) when is_list(Mode) ->
-    io:format(user, "\nWARNING: we assume that you know what you're doing "
-              "when\nspecifying trace_flags(Mode=~w)\n", [Mode]),
+    %% io:format(user, "\nWARNING: we assume that you know what you're doing "
+    %%           "when\nspecifying trace_flags(Mode=~w)\n", [Mode]),
     Mode -- custom_trace_flags().
 
 custom_trace_flags() ->
