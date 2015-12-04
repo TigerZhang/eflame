@@ -3,3 +3,7 @@ ebin/*
 *.svg
 *.out
 erl_crash.dump
+.idea
+_build
+.rebar/erlcinfo
+rebar.lock
