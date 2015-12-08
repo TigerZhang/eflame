@@ -1,6 +1,6 @@
 #!/usr/bin/env escript
 %% -*- erlang -*-
-%%! -smp enable -name eflamelaunch@`hostname`
+%%! -smp enable -sname eflamelaunch
 %%
 %% Copyright yunba.io 2015
 %%
@@ -10,6 +10,7 @@ main([Nodename, Cookie, Seconds])->
     SecondsInt = list_to_integer(Seconds),
     erlang:set_cookie(node(), CookieAtom),
     pong = net_adm:ping(Node),
+    rpc:call(Node, application, start, [eflame]),
     io:format("Start write trace... \n"),
     rpc:call(Node, eflame2, write_trace, [global_calls_plus_new_procs, "/tmp/ef.test.0", all, SecondsInt*1000]),
     io:format("Start formact trace... \n"),
