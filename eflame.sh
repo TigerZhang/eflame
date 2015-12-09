@@ -83,8 +83,9 @@ function do_eflame() {
 
 #    rm $TEMPFILE
 
-    OUTPUT=output-${node_name}.svg
-    OUTPUT_NO_SLEEP=output-no-sleep-${node_name}.svg
+    TIMESTAMP=`date +%F-%H-%M`
+    OUTPUT=${TIMESTAMP}-${node_name}.svg
+    OUTPUT_NO_SLEEP=${TIMESTAMP}-no-sleep-${node_name}.svg
 
     # rm ${OUTPUT}
     # rm ${OUTPUT_NO_SLEEP}
