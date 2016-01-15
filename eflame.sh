@@ -77,7 +77,7 @@ function get_opts() {
 }
 
 function do_eflame() {
-    rm *.svg
+    rm -f /tmp/ef.test.0*
     echo "eflame launch"
     escript eflame_launch.erl ${node_name} ${cookie} ${seconds}
 
